@@ -13,6 +13,8 @@ body{
 :root{
   /* Background Colors */
   --bg-primary-color: #0c0c0c;
+  --bg-fill-color: #fdfdfc;
+  --bg-food-color: #ff3b3b;
 
   /* Text Colors */
   --text-primary-color: #f0f0f0;
@@ -50,6 +52,18 @@ section{
   height: 100%;
 }
 
+.btn{
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn:hover{
+  transform: scale(1.1);
+}
+
 section{
   padding: var(--space-2xl);
   display: flex;
@@ -73,4 +87,67 @@ section .infos{
 .board{
   border: 1px solid var(--border-primary-color);
   flex-grow: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px,1fr));
+  grid-template-rows: repeat(auto-fill, minmax(50px,1fr));
+}
+
+.block{
+  /* width: 30px;
+  height: 30px; */
+  border: 1px solid var(--border-primary-color);
+  border-radius: 40%;
+}
+
+.fill{
+  background-color: var(--bg-fill-color);
+}
+
+.food{
+  background-color: var(--bg-food-color);
+}
+
+.modal{
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  background-color: #35353587;
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal .start-game, 
+.modal .game-over{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.modal .game-over{
+  display: none;
+}
+
+main{
+  position: relative;
+}
+
+.logo{
+  position: absolute;
+  top: 20px;
+  left: 32px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+}
+
+.logo span{
+  font-size: 26px;
 }
