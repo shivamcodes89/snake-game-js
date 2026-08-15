@@ -159,8 +159,6 @@ addEventListener("keydown",(event) => {
   }
 });
 
-
-
 // for phone touch
 let touchStartX = 0;
 let touchStartY = 0;
@@ -168,7 +166,11 @@ let touchStartY = 0;
 document.addEventListener("touchstart", (event) => {
   touchStartX = event.touches[0].clientX;
   touchStartY = event.touches[0].clientY;
-});
+}, { passive: false });
+
+document.addEventListener("touchmove", (event) => {
+  event.preventDefault();
+}, { passive: false });
 
 document.addEventListener("touchend", (event) => {
   const touchEndX = event.changedTouches[0].clientX;
@@ -177,7 +179,6 @@ document.addEventListener("touchend", (event) => {
   const diffX = touchEndX - touchStartX;
   const diffY = touchEndY - touchStartY;
 
-  // minimum swipe distance, taaki galti se chhota touch swipe na ban jaye
   const minSwipeDistance = 30;
 
   if(Math.abs(diffX) < minSwipeDistance && Math.abs(diffY) < minSwipeDistance){
@@ -185,14 +186,12 @@ document.addEventListener("touchend", (event) => {
   }
 
   if(Math.abs(diffX) > Math.abs(diffY)){
-    // horizontal swipe
     if(diffX > 0 && direction !== "left"){
       direction = "right";
     } else if(diffX < 0 && direction !== "right"){
       direction = "left";
     }
   } else {
-    // vertical swipe
     if(diffY > 0 && direction !== "up"){
       direction = "down";
     } else if(diffY < 0 && direction !== "down"){
