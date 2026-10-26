@@ -1,4 +1,4 @@
-const board = document.querySelector('.board');
+const board = document.querySelector(".board");
 const startButton = document.querySelector(".btn-start");
 const modal = document.querySelector(".modal");
 const startGameModal = document.querySelector(".start-game");
@@ -6,196 +6,263 @@ const gameOverModal = document.querySelector(".game-over");
 const restartButton = document.querySelector(".btn-restart");
 const highScoreElement = document.querySelector("#high-score");
 const scoreElement = document.querySelector("#score");
+const finalScoreElement = document.querySelector("#final-score");
 const timeElement = document.querySelector("#time");
 
-const blockHeight = 50;
-const blockWidth = 50;
-
-let highScore = localStorage.getItem("highScore") || 0;
+const blockSize = 32;
+const rows = Math.floor(board.clientHeight / blockSize);
+const cols = Math.floor(board.clientWidth / blockSize);
+const blocks = [];
+let highScore = Number(localStorage.getItem("highScore")) || 0;
 let score = 0;
-let time = `00:00`
+let elapsedSeconds = 0;
+let direction = "right";
+let nextDirection = direction;
+let snake = [];
+let food;
+let intervalId = null;
+let timerIntervalId = null;
+let isPlaying = false;
 
 highScoreElement.innerText = highScore;
+board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+board.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-const cols = Math.floor(board.clientWidth / blockWidth);
-const rows = Math.floor(board.clientHeight / blockHeight);
-let intervalId = null;
-
-let timerIntervalID = null;
-
-let food = {x: Math.floor(Math.random() * rows), y: Math.floor(Math.random() * cols)};
-
-const blocks = [];
-let snake = [
-  { x: 1, y: 3}
-];
-
-let direction = 'down';
-
-// for(let i=0; i<rows*cols; i++){
-//   const block = document.createElement('div');
-//   block.classList.add("block");
-//   board.appendChild(block);
-// }
-
-for(let row=0; row<rows; row++){
-  for(let col=0; col<cols; col++){
-    const block = document.createElement('div');
+for (let row = 0; row < rows; row += 1) {
+  for (let col = 0; col < cols; col += 1) {
+    const block = document.createElement("div");
     block.classList.add("block");
     board.appendChild(block);
     blocks[`${row}-${col}`] = block;
   }
 }
 
-function render(){
-  let head = null;
-  blocks[`${food.x}-${food.y}`].classList.add("food");
+function getRandomFood() {
+  const availableCells = [];
 
-  if(direction === "left"){
-    head = { x: snake[0].x, y: snake[0].y-1};
-  }
-  else if(direction === "right"){
-    head = { x: snake[0].x, y: snake[0].y+1};
-  }
-  else if(direction === "down"){
-    head = { x: snake[0].x+1, y: snake[0].y};
-  }else{
-    head = { x: snake[0].x-1, y: snake[0].y};
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      if (!snake.some((segment) => segment.x === row && segment.y === col)) {
+        availableCells.push({ x: row, y: col });
+      }
+    }
   }
 
-  // wall collision logic
-  if(head.x < 0 || head.x >= rows || head.y < 0 || head.y >= cols){
-    clearInterval(intervalId);
-    modal.style.display = "flex"
-    startGameModal.style.display = "none"
-    gameOverModal.style.display = "flex"
+  return availableCells[Math.floor(Math.random() * availableCells.length)];
+}
+
+function renderSnake() {
+  snake.forEach((segment, index) => {
+    const block = blocks[`${segment.x}-${segment.y}`];
+    block.classList.add(index === 0 ? "snake-head" : "snake-body");
+
+    if (index === 0) {
+      block.classList.add(`head-${direction}`);
+      return;
+    }
+
+    if (index === snake.length - 1) {
+      block.classList.add("snake-tail");
+    }
+  });
+}
+
+function clearSnake() {
+  snake.forEach((segment) => {
+    blocks[`${segment.x}-${segment.y}`].classList.remove(
+      "snake-head",
+      "snake-body",
+      "snake-tail",
+      "head-up",
+      "head-right",
+      "head-down",
+      "head-left",
+    );
+  });
+}
+
+function updateTime() {
+  elapsedSeconds += 1;
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = elapsedSeconds % 60;
+  timeElement.innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function endGame() {
+  isPlaying = false;
+  clearInterval(intervalId);
+  clearInterval(timerIntervalId);
+  modal.style.display = "flex";
+  startGameModal.style.display = "none";
+  gameOverModal.style.display = "flex";
+  finalScoreElement.innerText = score;
+}
+
+function render() {
+  direction = nextDirection;
+  const movement = {
+    up: { x: -1, y: 0 },
+    right: { x: 0, y: 1 },
+    down: { x: 1, y: 0 },
+    left: { x: 0, y: -1 },
+  }[direction];
+  const head = {
+    x: snake[0].x + movement.x,
+    y: snake[0].y + movement.y,
+  };
+  const ateFood = head.x === food.x && head.y === food.y;
+  const bodyToCheck = ateFood ? snake : snake.slice(0, -1);
+
+  if (
+    head.x < 0 ||
+    head.x >= rows ||
+    head.y < 0 ||
+    head.y >= cols ||
+    bodyToCheck.some((segment) => segment.x === head.x && segment.y === head.y)
+  ) {
+    endGame();
     return;
   }
 
-  // food consume logic
-  if(head.x==food.x && head.y==food.y){
+  clearSnake();
+  snake.unshift(head);
+
+  if (ateFood) {
     blocks[`${food.x}-${food.y}`].classList.remove("food");
-    food = {x: Math.floor(Math.random() * rows), y: Math.floor(Math.random() * cols)};
-    blocks[`${food.x}-${food.y}`].classList.add("food");
-    snake.unshift(head);
     score += 5;
     scoreElement.innerText = score;
-    if(score > highScore){
+
+    if (score > highScore) {
       highScore = score;
-      localStorage.setItem("highScore", highScore.toString())
+      highScoreElement.innerText = highScore;
+      localStorage.setItem("highScore", highScore.toString());
     }
+
+    food = getRandomFood();
+    if (food) {
+      blocks[`${food.x}-${food.y}`].classList.add("food");
+    }
+  } else {
+    snake.pop();
   }
 
-  snake.forEach(segment => {
-    blocks[`${segment.x}-${segment.y}`].classList.remove("fill");
-  })
+  if (!food) {
+    endGame();
+    return;
+  }
 
-  snake.unshift(head);
-  snake.pop();
-  snake.forEach(segment=>{
-    blocks[`${segment.x}-${segment.y}`].classList.add("fill");
-  })
+  renderSnake();
 }
 
-// intervalId = setInterval(() => {
-//   render();
-// }, 350);
+function startGame() {
+  if (isPlaying) {
+    return;
+  }
 
-startButton.addEventListener("click", () => {
-  modal.style.display = "none"
-  intervalId = setInterval(() => {
-    render();
-  },350)
-  timerIntervalID = setInterval(() => {
-    let [min,sec] = time.split(":").map(Number);
-    if(sec==59){
-      min+=1;
-      sec=0;
-    }else{
-      sec+=1;
-    }
-    time = `${min}:${sec}`
-    timeElement.innerText = time;
-  }, 1000)
-})
+  isPlaying = true;
+  modal.style.display = "none";
+  intervalId = setInterval(render, 180);
+  timerIntervalId = setInterval(updateTime, 1000);
+}
 
-restartButton.addEventListener("click", restartGame)
-
-function restartGame(){
-  blocks[`${food.x}-${food.y}`].classList.remove("food")
-  snake.forEach(segment => {
-    blocks[`${segment.x}-${segment.y}`].classList.remove("fill")
-  })
-  score = 0
-  time = `00:00`
+function restartGame() {
+  clearInterval(intervalId);
+  clearInterval(timerIntervalId);
+  clearSnake();
+  blocks[`${food.x}-${food.y}`].classList.remove("food");
+  score = 0;
+  elapsedSeconds = 0;
+  direction = "right";
+  nextDirection = direction;
+  snake = [{ x: Math.floor(rows / 2), y: Math.floor(cols / 2) }];
+  food = getRandomFood();
 
   scoreElement.innerText = score;
-  timeElement.innerText = time;
-  highScoreElement.innerText = highScore
+  timeElement.innerText = "00:00";
+  highScoreElement.innerText = highScore;
+  if (food) {
+    blocks[`${food.x}-${food.y}`].classList.add("food");
+  }
+  renderSnake();
 
-  modal.style.display = "none"
-  direction = "down";
-  snake = [{x: 1, y: 3}]
-  food = {x: Math.floor(Math.random() * rows), y: Math.floor(Math.random() * cols)};
-  intervalId = setInterval(() => {
-    render();
-  },350)
+  modal.style.display = "none";
+  isPlaying = false;
+  startGame();
 }
 
+snake = [{ x: Math.floor(rows / 2), y: Math.floor(cols / 2) }];
+food = getRandomFood();
+if (food) {
+  blocks[`${food.x}-${food.y}`].classList.add("food");
+}
+renderSnake();
 
+startButton.addEventListener("click", startGame);
+restartButton.addEventListener("click", restartGame);
 
-addEventListener("keydown",(event) => {
-  if(event.key=="ArrowUp"){
-    direction="up"
+const oppositeDirections = {
+  up: "down",
+  right: "left",
+  down: "up",
+  left: "right",
+};
+
+function changeDirection(newDirection) {
+  if (newDirection && oppositeDirections[nextDirection] !== newDirection) {
+    nextDirection = newDirection;
   }
-  else if(event.key=="ArrowRight"){
-    direction="right"
-  }
-  else if(event.key=="ArrowLeft"){
-    direction="left"
-  }
-  else{
-    direction="down"
+}
+
+window.addEventListener("keydown", (event) => {
+  const keyDirections = {
+    ArrowUp: "up",
+    ArrowRight: "right",
+    ArrowDown: "down",
+    ArrowLeft: "left",
+    w: "up",
+    d: "right",
+    s: "down",
+    a: "left",
+    W: "up",
+    D: "right",
+    S: "down",
+    A: "left",
+  };
+  const newDirection = keyDirections[event.key];
+
+  if (newDirection) {
+    event.preventDefault();
+    changeDirection(newDirection);
   }
 });
 
-// for phone touch
 let touchStartX = 0;
 let touchStartY = 0;
 
-document.addEventListener("touchstart", (event) => {
-  touchStartX = event.touches[0].clientX;
-  touchStartY = event.touches[0].clientY;
-}, { passive: false });
+board.addEventListener(
+  "touchstart",
+  (event) => {
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+  },
+  { passive: true },
+);
 
-document.addEventListener("touchmove", (event) => {
-  event.preventDefault();
-}, { passive: false });
+board.addEventListener(
+  "touchend",
+  (event) => {
+    const diffX = event.changedTouches[0].clientX - touchStartX;
+    const diffY = event.changedTouches[0].clientY - touchStartY;
 
-document.addEventListener("touchend", (event) => {
-  const touchEndX = event.changedTouches[0].clientX;
-  const touchEndY = event.changedTouches[0].clientY;
-
-  const diffX = touchEndX - touchStartX;
-  const diffY = touchEndY - touchStartY;
-
-  const minSwipeDistance = 30;
-
-  if(Math.abs(diffX) < minSwipeDistance && Math.abs(diffY) < minSwipeDistance){
-    return;
-  }
-
-  if(Math.abs(diffX) > Math.abs(diffY)){
-    if(diffX > 0 && direction !== "left"){
-      direction = "right";
-    } else if(diffX < 0 && direction !== "right"){
-      direction = "left";
+    if (Math.max(Math.abs(diffX), Math.abs(diffY)) < 30) {
+      return;
     }
-  } else {
-    if(diffY > 0 && direction !== "up"){
-      direction = "down";
-    } else if(diffY < 0 && direction !== "down"){
-      direction = "up";
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      changeDirection(diffX > 0 ? "right" : "left");
+    } else {
+      changeDirection(diffY > 0 ? "down" : "up");
     }
-  }
-});
+  },
+  { passive: true },
+);
