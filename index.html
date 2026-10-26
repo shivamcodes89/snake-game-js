@@ -10,8 +10,11 @@
   <main>
     <section>
       
-      <div class="logo">
-        <span>🐍</span> SnakeCraft
+      <div class="topbar">
+        <div class="logo">
+          <span aria-hidden="true">🐍</span> SnakeCraft
+        </div>
+        <p class="controls-hint">Use arrow keys or WASD to move</p>
       </div>
 
       <div class="infos">
@@ -34,13 +37,19 @@
 
       <div class="board"></div>
     </section>
-    <div class="modal">
-      <div class="start-game">
-        <h3>Welcome to the Snake Game</h3>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Snake game">
+      <div class="modal-card start-game">
+        <span class="modal-emoji" aria-hidden="true">🐍</span>
+        <p class="eyebrow">READY, SET, SLITHER</p>
+        <h1>SnakeCraft</h1>
+        <p class="modal-copy">Eat the glowing fruit, grow longer, and avoid the walls.</p>
         <button class="btn btn-start">Start Game</button>
       </div>
-      <div class="game-over">
-        <h3>game Over</h3>
+      <div class="modal-card game-over">
+        <span class="modal-emoji" aria-hidden="true">💥</span>
+        <p class="eyebrow">NICE RUN</p>
+        <h1>Game over</h1>
+        <p class="modal-copy">Final score: <strong id="final-score">0</strong></p>
         <button class="btn btn-restart">Restart Game</button>
       </div> 
     </div>
