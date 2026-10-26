@@ -1,7 +1,7 @@
 
 # 🐍 SnakeCraft
  
-A classic Snake game rebuilt for the browser — clean dark UI, smooth grid-based movement, live scoring, and full mobile touch support. Built with pure HTML, CSS, and vanilla JavaScript, no frameworks or libraries.
+A classic Snake game rebuilt for the browser — a polished, dimensional green snake with an animated chomping mouth, glowing fruit, smooth grid-based movement, live scoring, and mobile touch support. Built with pure HTML, CSS, and vanilla JavaScript, no frameworks or libraries.
  
 **🎮 Live Demo: https://snake-game-js-olive.vercel.app/
  
@@ -10,10 +10,11 @@ A classic Snake game rebuilt for the browser — clean dark UI, smooth grid-base
 ## ✨ Features
  
 - **Classic Snake gameplay** — eat food, grow longer, avoid hitting the walls
+- **Dimensional snake design** — glossy 3D-style segments, animated eyes and chomping mouth, and glowing fruit
 - **Dynamic grid rendering** — board automatically adapts to any screen size
 - **Score & High Score tracking** — high score persists across sessions using `localStorage`
 - **Live game timer** — tracks how long each run lasts
-- **Keyboard controls** — play using arrow keys on desktop
+- **Keyboard controls** — play using arrow keys or WASD on desktop
 - **Touch/swipe controls** — fully playable on mobile with swipe gestures
 - **Start & Game Over modals** — clean overlay screens for starting and restarting
 - **Custom themed background** — subtle snake-pattern artwork for visual polish
@@ -24,7 +25,7 @@ A classic Snake game rebuilt for the browser — clean dark UI, smooth grid-base
  
 | Platform | Control |
 |----------|---------|
-| Desktop  | Arrow keys (`↑` `↓` `←` `→`) |
+| Desktop  | Arrow keys (`↑` `↓` `←` `→`) or WASD |
 | Mobile   | Swipe in any direction (up / down / left / right) |
  
 ---
